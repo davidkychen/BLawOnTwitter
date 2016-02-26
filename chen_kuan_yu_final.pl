@@ -5,14 +5,16 @@ use Net::Twitter;
 
 #combine from 373213004
 
-$consumer_key = "8YFMkudnPUOwKVPAsxVuMJGZb";
-$consumer_secret = "txo8GHZrOeazDXZSHlYmGTpD3FZj1EceZwLKwFRwQaxKopiF94";
-$token = "1153513506-NOpzkdIuRws9s2rcYBqOCM9gfWUICTfUxSbT5Fi";
-$token_secret = "9aYT9b9bEvDJ2kMrjwayfofhM9jYafhqVeSeJO2UVkc6x";
+# $consumer_key = "need to add";
+# $consumer_secret = "need to add";
+# $token = "need to add";
+# $token_secret = "need to add";
+
 print "Enter UserID to begin: ";
 $firstUserid = <>;
 chomp $firstUserid;
 
+#Connect to Twitter API
 my $nt = Net::Twitter->new(
 	traits => [qw/API::RESTv1_1/],
 	consumer_key => $consumer_key,
@@ -25,7 +27,7 @@ $requestCount = 0;
 $checkCount = 0;
 $user_count = 0;
 
-
+#Function to get a user's friends ids and their friend numbers
 sub getUserFriendlist{
  	my ($userid_check) = @_;
  	print "Capturing friend list of $userid_check........\n";
@@ -52,6 +54,7 @@ sub getUserFriendlist{
  		print "Capturing $userid_check\'s Next cursor: $cursor\n";
  	}
  }
+#Function to get only a user's friends ids 
 sub friendListGetter{
 	my($userid_check) = @_;
 	$userid_global = $userid_check;
@@ -82,6 +85,8 @@ sub friendListGetter{
 		getUserFriendlist($userid_check);
 	}
 }
+
+#Function to count friends number
 sub countFriend{
  	my($userid, $text) = @_;
  	$toIterate = $text->{"users"};
@@ -94,11 +99,13 @@ sub countFriend{
  	}
  	close (OUTPUT);
  }
+#Function to pass friend's ids to arrayFriendGetter
 sub countFriend2{
 	my($userid, $text) = @_;
 	@toIterate = @{$text->{ids}};
 	arrayFriendGetter(@toIterate);
 }
+#Function to get a bunch of ids' friend numbers
 sub arrayFriendGetter{
 	my(@userids) = @_;
 	$key = 0;
@@ -132,23 +139,25 @@ sub arrayFriendGetter{
 		close (OUTPUT);
 	}	
 }
-
+#Function to check if certain request has reached rate limit
 sub checkRequestTimes{
 	if($requestCount == 15){
 		sleepFor15();
 	}
 }
+#Function to check if certain request has reached rate limit
 sub checkRequestTimes2{
 	if($requestCount2 == 15){
 		sleepFor15();
 	}
 }
+#Function to check if certain request has reached rate limit
 sub checkCheckTimes{
 	if($checkCount == 180){
 		sleepFor15();
 	}
 }
-
+#Function to tell the app to sleep
 sub sleepFor15{
 	print "Have already reached rate limit.\n";
 		($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
@@ -174,6 +183,7 @@ sub sleepFor15{
 		printf("%02d:%02d:%02d", $hour, $min, $sec);
 		print "\n";
 }
+#Function to check if an id exists
 sub checkIfUserExist{
 	my($userid) = @_;
 	checkCheckTimes();
@@ -187,7 +197,7 @@ sub checkIfUserExist{
 		die "Friend number not in the target range";
 	}
 }
-
+#Function to check if certain ids exist
 sub arrayCheck{
 	my($userid) = @_;
 	@searchArr =();
@@ -222,7 +232,7 @@ sub arrayCheck{
  		}
 	}
 }
-
+#Function to check ratelimit
 sub checkRateStatus{
 	$checkRate = $nt->rate_limit_status;
 	$lookupRate = $checkRate->{resources}->{statuses}->{"/statuses/lookup"}->{remaining};
