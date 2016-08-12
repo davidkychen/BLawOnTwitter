@@ -3,8 +3,8 @@
 use LWP::Simple;
 use Net::Twitter;
 
-#combine from 373213004
 
+# Below information was removed due to pravicy issue
 # $consumer_key = "need to add";
 # $consumer_secret = "need to add";
 # $token = "need to add";
@@ -14,7 +14,7 @@ print "Enter UserID to begin: ";
 $firstUserid = <>;
 chomp $firstUserid;
 
-#Connect to Twitter API
+#Connect to Twitter API. Need to add tokens and keys before connecting.
 my $nt = Net::Twitter->new(
 	traits => [qw/API::RESTv1_1/],
 	consumer_key => $consumer_key,
@@ -23,6 +23,7 @@ my $nt = Net::Twitter->new(
 	access_token_secret => $token_secret,
 	);
 
+#Twiter API has rate limit. The varaibles are set to count if certain limits are reached.
 $requestCount = 0;
 $checkCount = 0;
 $user_count = 0;
@@ -31,15 +32,25 @@ $user_count = 0;
 sub getUserFriendlist{
  	my ($userid_check) = @_;
  	print "Capturing friend list of $userid_check........\n";
+ 	
+ 	#Check if request time reaches rate limit
  	checkRequestTimes();
  	$requestCount +=1;
+
+ 	#Request an account's friend list through Twitter API
  	my $friendList = $nt->friends({
  		user_id => $userid_check,
  		count => 200});
+
+ 	#Retrieve the needed information from the result
  	countFriend($userid_check, $friendList);
+
+ 	#Change the cursor to next one to keep retrieving information
  	$cursor = $friendList->{next_cursor};
 	
  	print "Have sent $requestCount request(s)...\n";
+
+ 	#Iterate thorough the cursors and keep retrieving information until the account's friends infomation has been all retrieved
  	while($cursor != 0){
  		checkRequestTimes();
  		$requestCount +=1;
@@ -62,12 +73,18 @@ sub friendListGetter{
 	#checkRequestTimes2();
 	if($requestCount2 < 15){
 		$requestCount2 +=1;
+		#Retrieve only an account's friend ids through Twitter API
 		my $friendList = $nt->friends_ids({
 			user_id => $userid_check,
 			count => 5000});
+
 		$cursor = $friendList->{next_cursor};
+
+		#Retrieve the needed information(friend id) from the result
 		countFriend2($userid_check, $friendList);
 		print "Have sent $requestCount2 request(s)...\n";
+
+		#Iterate through every cursor and retrieve information
 		while($cursor != 0){
 			checkRequestTimes2();
 			$requestCount2 +=1;
@@ -244,16 +261,20 @@ sub checkRateStatus{
 
 $nowUserid = $firstUserid;
 
-
+# Keep collecting account's friend number until reaching 50000 accounts
  while($user_count < 50000){
  	eval {
  		if($found != 1){
+ 			#Check if a user id exists or being protected
  			checkIfUserExist($nowUserid);
  		}
  		#getUserFriendlist($nowUserid);
+ 		#Retrieve a user id's friend information
 		friendListGetter($nowUserid);
  		$user_count += 1;
  		print "Now has $user_count user data\n";
+
+ 		#Collect every 50000th user's friend information
  		$nowUserid += 50000;
  		$found = 0;
  	};
